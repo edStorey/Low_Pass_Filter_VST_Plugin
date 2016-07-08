@@ -161,6 +161,13 @@ void LowPassFilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiB
 
 	// All code from here to the end of the processing loop is designed by Ed Storey
 
+	// If the selected filter frequency is above the nyquist frequency force it below the threshold
+	if (Frequency >(getSampleRate() / 2))
+	{
+		Frequency = (getSampleRate() / 2) * 0.999;
+		FreqCheck = Frequency;
+	}
+
 	// If the window size generated from the DAW changes resize the buffers
 	if (windowSize != buffer.getNumSamples())resizeBuffers(buffer);
 
