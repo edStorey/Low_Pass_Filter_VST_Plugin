@@ -1,0 +1,19 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2013
+Project("{41E28588-07E3-2B0A-15EC-EE1D13C8FFE1}") = "LowPassFilter", "LowPassFilter.vcxproj", "{D876D0FF-AE56-E99E-D010-5211F640AFDB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D876D0FF-AE56-E99E-D010-5211F640AFDB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D876D0FF-AE56-E99E-D010-5211F640AFDB}.Debug|Win32.Build.0 = Debug|Win32
+		{D876D0FF-AE56-E99E-D010-5211F640AFDB}.Release|Win32.ActiveCfg = Release|Win32
+		{D876D0FF-AE56-E99E-D010-5211F640AFDB}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
