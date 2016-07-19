@@ -116,16 +116,6 @@ void LowPassFilterAudioProcessor::calculateCoefficients()
 	FS = getSampleRate();
 }
 
-void LowPassFilterAudioProcessor::resizeBuffers(AudioSampleBuffer& buffer)
-{
-	// If the widow size is changed resize the buffers 
-	filterBufferL.setSize(1, buffer.getNumSamples()*2, false, true, true);
-	filterBufferR.setSize(1, buffer.getNumSamples() * 2, false, true, true);
-	unfilterBufferL.setSize(1, buffer.getNumSamples() * 2, false, true, true);
-	unfilterBufferR.setSize(1, buffer.getNumSamples() * 2, false, true, true);
-	windowSize = buffer.getNumSamples();
-}
-
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool LowPassFilterAudioProcessor::setPreferredBusArrangement (bool isInput, int bus, const AudioChannelSet& preferredSet)
 {
@@ -168,23 +158,8 @@ void LowPassFilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiB
 		FreqCheck = Frequency;
 	}
 
-	// If the window size generated from the DAW changes resize the buffers
-	if (windowSize != buffer.getNumSamples())resizeBuffers(buffer);
-
 	// If the sampling rate, Q factor or frequency change re-calculate the filter coeficients
 	if (FS != getSampleRate() || QFactor != QCheck || Frequency != FreqCheck)calculateCoefficients();
-
-	// Get current read pointers
-	filterBufferLrp = filterBufferL.getReadPointer(0);
-	filterBufferRrp = filterBufferR.getReadPointer(0);
-	unfilterBufferLrp = unfilterBufferL.getReadPointer(0);
-	unfilterBufferRrp = unfilterBufferR.getReadPointer(0);
-
-	// Get current write pointers
-	filterBufferLwp = filterBufferL.getWritePointer(0);
-	filterBufferRwp = filterBufferR.getWritePointer(0);
-	unfilterBufferLwp = unfilterBufferL.getWritePointer(0);
-	unfilterBufferRwp = unfilterBufferR.getWritePointer(0);
 
 	// create input and output channels to read from and write to
 	const float *inL = buffer.getReadPointer(0);
@@ -197,42 +172,30 @@ void LowPassFilterAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiB
 	// Loop through the current input window
 	for (int i = 0; i < buffer.getNumSamples(); i++)
     {
-		// The processing buffer is twice the size of the input buffer
-		// here we calculate n as being either i + 0 or i + the length of the input buffer
-		// the length of the input buffer is equivalent to half the size of the processing buffer.
-		int n = i + bidx*buffer.getNumSamples();
-		int n_1 = n - 1;
-		int n_2 = n - 2;
+		// Update filter input variables
+		x2L = x1L;
+		x2R = x1R;
+		x1L = xL;
+		x1R = xR;
+		xL = inL[i];
+		xR = inR[i];
 
-		// Store unfiltered input.
-		unfilterBufferLwp[n] = inL[i];
-		unfilterBufferRwp[n] = inR[i];
+		// Update filter input variables
+		y2L = y1L;
+		y2R = y1R;
+		y1L = yL;
+		y1R = yR;
 
-		// If n < 2 wrap either n-1 or n-2 around the circular buffer.
-		if (n == 0)
-		{
-			n_1 = filterBufferL.getNumSamples() - 1;
-			n_2 = filterBufferL.getNumSamples() - 2;
-		}
-		else if (n == 1)
-		{
-			n_1 = n - 1;
-			n_2 = filterBufferL.getNumSamples() - 1;
-		}
-
-		// Store the filtered output in an audio buffer from DAFx equation:
+		// Store the filtered output from DAFx equation:
 		// y(n) = b0x(n) + b1x(n-1) + b2x(n-2) - a0y(n-1) - a1y(n-2)
-		filterBufferLwp[n] = b0*unfilterBufferLrp[n] + b1*unfilterBufferLrp[n_1] + b2*unfilterBufferLrp[n_2] - a0*filterBufferLrp[n_1] - a1*filterBufferLrp[n_2];
-		filterBufferRwp[n] = b0*unfilterBufferLrp[n] + b1*unfilterBufferLrp[n_1] + b2*unfilterBufferLrp[n_2] - a0*filterBufferRrp[n_1] - a1*filterBufferRrp[n_2];
+		yL = b0*xL + b1*x1L + b2*x2L - a0*y1L - a1*y2L;
+		yR = b0*xR + b1*x1R + b2*x2R - a0*y1R - a1*y2R;
 
 		// Output the filtered audio to output buffer
-		outL[i] = filterBufferLrp[n];
-		outR[i] = filterBufferLrp[n];
+		outL[i] = yL;
+		outR[i] = yR;
     }
 
-	// Increase buffer index by 1, if bidx > 1 set to 0
-	bidx++;
-	if (bidx > 1)bidx = 0;
 	// Store current Q, frequency and sample rate data.
 	QCheck = QFactor;
 	FreqCheck = Frequency;

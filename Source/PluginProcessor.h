@@ -66,36 +66,18 @@ public:
 	//==============================================================================
 
 	void calculateCoefficients();
-	void resizeBuffers(AudioSampleBuffer& buffer);
 
 	//==============================================================================
-
-	//Initialise processing buffers
-	AudioSampleBuffer filterBufferL;
-	AudioSampleBuffer filterBufferR;
-	AudioSampleBuffer unfilterBufferL;
-	AudioSampleBuffer unfilterBufferR;
-
-	// Define pointers for reading and writing to the processing buffers 
-	float* filterBufferLwp = {};
-	float* filterBufferRwp = {};
-	float* unfilterBufferLwp = {};
-	float* unfilterBufferRwp = {};
-
-	const float *filterBufferLrp;
-	const float *filterBufferRrp;
-	const float *unfilterBufferLrp;
-	const float *unfilterBufferRrp;
 
 	// Define variables for use in processBlock in PluginProcessor.cpp
 	float QFactor, Frequency, QCheck, FreqCheck;
 	float b0, b1, b2, a0, a1;
+	float xL = 0, x1L = 0, x2L = 0, yL = 0, y1L = 0, y2L = 0;
+	float xR = 0, x1R = 0, x2R = 0, yR = 0, y1R = 0, y2R = 0;
     
 	// Initialising FS and windowSize to 0 ensure that the filter coeficients
 	// and buffer sizes are calculated the first time processBlock is called.
 	int FS = 0;
-	
-	int bidx = 0;
 
 	int windowSize = 0;
 
